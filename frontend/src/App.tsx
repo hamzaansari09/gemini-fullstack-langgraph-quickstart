@@ -117,7 +117,7 @@ export default function App() {
         ]);
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setError(error.message);
     },
   });
@@ -257,6 +257,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
