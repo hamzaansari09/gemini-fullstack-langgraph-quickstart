@@ -1,48 +1,62 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import TypedDict, Optional, Any
 
 from langgraph.graph import add_messages
 from typing_extensions import Annotated
 
-
 import operator
 
 
-class OverallState(TypedDict):
+class MarketingState(TypedDict):
+    """Main state for marketing analysis workflow."""
     messages: Annotated[list, add_messages]
-    search_query: Annotated[list, operator.add]
-    web_research_result: Annotated[list, operator.add]
-    sources_gathered: Annotated[list, operator.add]
-    initial_search_query_count: int
-    max_research_loops: int
-    research_loop_count: int
-    reasoning_model: str
+    image_data: Optional[str]  # Base64 encoded image data
+    selected_date: Optional[str]  # User-selected date from query
+    insights: Optional[list]  # List of ad insights
+    improvements: Optional[list]  # List of improvement suggestions
+    takeaways: Optional[list]  # List of key takeaways
+    greeting_sent: bool  # Track if greeting has been sent
+    analysis_complete: bool  # Track if analysis is complete
 
 
-class ReflectionState(TypedDict):
-    is_sufficient: bool
-    knowledge_gap: str
-    follow_up_queries: Annotated[list, operator.add]
-    research_loop_count: int
-    number_of_ran_queries: int
+class DateExtractionState(TypedDict):
+    """State for date extraction from user query."""
+    selected_date: str
+    date_found: bool
 
 
-class Query(TypedDict):
-    query: str
-    rationale: str
+class GreetingState(TypedDict):
+    """State for greeting message generation."""
+    greeting_message: str
+    user_name: Optional[str]
 
 
-class QueryGenerationState(TypedDict):
-    search_query: list[Query]
+class InsightAnalysisState(TypedDict):
+    """State for ad insight analysis."""
+    insights: list[dict]
+    image_processed: bool
 
 
-class WebSearchState(TypedDict):
-    search_query: str
-    id: str
+class ImprovementSuggestionState(TypedDict):
+    """State for ad improvement suggestions."""
+    improvements: list[dict]
+    suggestions_generated: bool
+
+
+class TakeawayExtractionState(TypedDict):
+    """State for key takeaway extraction."""
+    takeaways: list[dict]
+    summary_complete: bool
 
 
 @dataclass(kw_only=True)
-class SearchStateOutput:
-    running_summary: str = field(default=None)  # Final report
+class MarketingAnalysisOutput:
+    """Output structure for marketing analysis results."""
+    insights: list[dict] = field(default_factory=list)
+    improvements: list[dict] = field(default_factory=list)
+    takeaways: list[dict] = field(default_factory=list)
+    selected_date: Optional[str] = field(default=None)
+    greeting_message: Optional[str] = field(default=None)
+
