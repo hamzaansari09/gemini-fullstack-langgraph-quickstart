@@ -193,23 +193,82 @@ def analyze_ad_insights_tool(state: MarketingState, config: RunnableConfig) -> D
 
 
 def suggest_ad_improvements_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
-    """LangGraph node that identifies knowledge gaps and generates potential follow-up queries.
-
-    Analyzes the current summary to identify areas for further research and generates
-    potential follow-up queries. Uses structured output to extract
-    the follow-up query in JSON format.
-
+    """Generate 3 performance enhancement recommendations.
+    
     Args:
-        state: Current graph state containing the running summary and research topic
-        config: Configuration for the runnable, including LLM provider settings
-
+        state: Current marketing state with insights data
+        config: Configuration for the runnable
+        
     Returns:
-        Dictionary with state update, including search_query key containing the generated follow-up query
+        Dictionary with state update including improvement suggestions
     """
     configurable = Configuration.from_runnable_config(config)
-    # Increment the research loop count and get the reasoning model
-    state["research_loop_count"] = state.get("research_loop_count", 0) + 1
-    reasoning_model = state.get("reasoning_model", configurable.reflection_model)
+    
+    if not state.get("image_data"):
+        return {
+            "messages": [AIMessage(content="No image data available for improvement suggestions. Please ensure ad analysis is completed first.")],
+        }
+    
+    # Initialize Gemini Vision model for improvement suggestions
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",  # Use vision-capable model
+        temperature=0.4,
+        max_retries=2,
+        api_key=os.getenv("GEMINI_API_KEY"),
+    )
+    structured_llm = llm.with_structured_output(AdImprovements)
+    
+    # Prepare image content for vision model
+    image_content = {
+        "type": "image_url",
+        "image_url": {"url": f"data:image/jpeg;base64,{state['image_data']}"}
+    }
+    
+    # Include previous insights context if available
+    insights_context = ""
+    if state.get("insights"):
+        insights_context = "Previous insights identified:\n"
+        for insight in state["insights"]:
+            insights_context += f"- {insight['title']}: {insight['description']}\n"
+    
+    # Format the prompt for improvement suggestions
+    formatted_prompt = ad_improvements_instructions.format(
+        current_date=get_current_date(),
+        insights_context=insights_context
+    )
+    
+    # Create message with both text and image
+    messages = [
+        HumanMessage(content=[
+            {"type": "text", "text": formatted_prompt},
+            image_content
+        ])
+    ]
+    
+    result = structured_llm.invoke(messages)
+    
+    # Convert improvements to list format for state storage
+    improvements_list = [
+        {
+            "category": improvement.category,
+            "suggestion": improvement.suggestion,
+            "expected_impact": improvement.expected_impact,
+            "priority": improvement.priority
+        }
+        for improvement in result.improvements
+    ]
+    
+    # Create response message
+    improvements_content = f"## 🚀 Performance Enhancement Recommendations\n\n{result.implementation_notes}\n\n"
+    for i, improvement in enumerate(result.improvements, 1):
+        improvements_content += f"### {i}. {improvement.category} ({improvement.priority} Priority)\n"
+        improvements_content += f"**Suggestion:** {improvement.suggestion}\n"
+        improvements_content += f"**Expected Impact:** {improvement.expected_impact}\n\n"
+    
+    return {
+        "improvements": improvements_list,
+        "messages": [AIMessage(content=improvements_content)],
+    }
 
     # Format the prompt
     current_date = get_current_date()
@@ -347,6 +406,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
