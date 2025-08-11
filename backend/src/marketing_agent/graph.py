@@ -31,7 +31,7 @@ load_dotenv()
 if os.getenv("GEMINI_API_KEY") is None:
     raise ValueError("GEMINI_API_KEY is not set")
 
-# Used for Google Search API
+# Used for Gemini Vision API
 genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
@@ -286,4 +286,5 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
