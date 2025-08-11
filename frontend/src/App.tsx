@@ -6,6 +6,50 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { ChatMessagesView } from "@/components/ChatMessagesView";
 import { Button } from "@/components/ui/button";
 
+// Type definitions for marketing agent data structures
+interface AdInsight {
+  title: string;
+  description: string;
+  impact_level: 'High' | 'Medium' | 'Low';
+}
+
+interface AdImprovement {
+  category: string;
+  suggestion: string;
+  expected_impact: string;
+  priority: 'High' | 'Medium' | 'Low';
+  implementation_notes: string;
+}
+
+interface AdTakeaway {
+  relevance: 'Strategic' | 'Tactical' | 'Operational';
+  takeaway: string;
+  actionable_insight: string;
+}
+
+// Type definitions for event parameters
+interface Source {
+  label?: string;
+  value?: string;
+  short_url?: string;
+}
+
+interface UpdateEvent {
+  generate_query?: {
+    search_query?: string[];
+  };
+  web_research?: {
+    sources_gathered?: Source[];
+  };
+  reflection?: Record<string, unknown>;
+  finalize_answer?: Record<string, unknown>;
+  provide_date?: Record<string, unknown>;
+  greet_user?: Record<string, unknown>;
+  analyze_insights?: Record<string, unknown>;
+  suggest_improvements?: Record<string, unknown>;
+  extract_takeaways?: Record<string, unknown>;
+}
+
 export default function App() {
   const [processedEventsTimeline, setProcessedEventsTimeline] = useState<
     ProcessedEvent[]
@@ -213,6 +257,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
