@@ -36,7 +36,6 @@ export const InputForm: React.FC<InputFormProps> = ({
     onSubmit(internalInputValue, effort, model, imageData || undefined);
     setInternalInputValue("");
     setImageData(null);
-    setImageName(undefined);
   };
 
   const handleImageSelect = (selectedImageData: string | null, fileName?: string) => {
@@ -196,6 +195,7 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
 
 
 
