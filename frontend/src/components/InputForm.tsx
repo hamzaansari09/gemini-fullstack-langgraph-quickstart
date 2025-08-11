@@ -161,7 +161,7 @@ export const InputForm: React.FC<InputFormProps> = ({
                   </div>
                 </SelectItem>
                 <SelectItem
-                  value="claude-3-sonnet-20240229"
+                  value="claude-3-sonnet-latest"
                   className="hover:bg-neutral-600 focus:bg-neutral-600 cursor-pointer"
                 >
                   <div className="flex items-center">
@@ -169,7 +169,7 @@ export const InputForm: React.FC<InputFormProps> = ({
                   </div>
                 </SelectItem>
                 <SelectItem
-                  value="claude-3-opus-20240229"
+                  value="claude-3-opus-latest"
                   className="hover:bg-neutral-600 focus:bg-neutral-600 cursor-pointer"
                 >
                   <div className="flex items-center">

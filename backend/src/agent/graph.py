@@ -177,7 +177,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
     )
     # init Reasoning Model
     llm = ChatAnthropic(
-        model="claude-3-sonnet-20240229",
+        model="claude-3-sonnet-latest",
         temperature=1.0,
         max_retries=2,
         api_key=os.getenv("ANTHROPIC_API_KEY"),

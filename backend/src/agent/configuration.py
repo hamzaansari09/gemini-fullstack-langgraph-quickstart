@@ -9,21 +9,21 @@ class Configuration(BaseModel):
     """The configuration for the agent."""
 
     query_generator_model: str = Field(
-        default="claude-3-haiku-20240307",
+        default="claude-3-haiku-latest",
         metadata={
             "description": "The name of the language model to use for the agent's query generation."
         },
     )
 
     reflection_model: str = Field(
-        default="claude-3-sonnet-20240229",
+        default="claude-3-sonnet-latest",
         metadata={
             "description": "The name of the language model to use for the agent's reflection."
         },
     )
 
     answer_model: str = Field(
-        default="claude-3-opus-20240229",
+        default="claude-3-opus-latest",
         metadata={
             "description": "The name of the language model to use for the agent's answer."
         },
