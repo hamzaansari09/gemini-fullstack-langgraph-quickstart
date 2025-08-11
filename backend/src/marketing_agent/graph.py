@@ -35,8 +35,9 @@ if os.getenv("GEMINI_API_KEY") is None:
 genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-# Nodes
-def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
+# Marketing Analysis Tool Functions
+
+def provide_date_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
     """LangGraph node that generates search queries based on the User's question.
 
     Uses Gemini 2.0 Flash to create an optimized search queries for web research based on
@@ -286,5 +287,6 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
