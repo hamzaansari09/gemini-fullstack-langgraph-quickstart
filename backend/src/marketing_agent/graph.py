@@ -371,12 +371,7 @@ def should_extract_takeaways(state: MarketingState) -> str:
     return END
 
 
-def finalize_answer(state: OverallState, config: RunnableConfig):
-    """LangGraph node that finalizes the research summary.
 
-    Prepares the final output by deduplicating and formatting sources, then
-    combining them with the running summary to create a well-structured
-    research report with proper citations.
 
 # Create the Marketing Agent Graph
 builder = StateGraph(MarketingState, config_schema=Configuration)
@@ -400,6 +395,7 @@ builder.add_conditional_edges("extract_takeaways", should_extract_takeaways, [EN
 
 # Compile the graph
 graph = builder.compile(name="marketing-analyst-agent")
+
 
 
 
