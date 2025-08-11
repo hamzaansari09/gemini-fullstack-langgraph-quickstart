@@ -78,15 +78,50 @@ def provide_date_tool(state: MarketingState, config: RunnableConfig) -> Dict[str
     }
 
 
-def continue_to_web_research(state: QueryGenerationState):
-    """LangGraph node that sends the search queries to the web research node.
-
-    This is used to spawn n number of web research nodes, one for each search query.
+def greet_user_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
+    """Provide a personalized greeting message.
+    
+    Args:
+        state: Current marketing state
+        config: Configuration for the runnable
+        
+    Returns:
+        Dictionary with state update including greeting message
     """
-    return [
-        Send("web_research", {"search_query": search_query, "id": int(idx)})
-        for idx, search_query in enumerate(state["search_query"])
-    ]
+    configurable = Configuration.from_runnable_config(config)
+    
+    # Get the latest user message
+    user_message = ""
+    for message in reversed(state["messages"]):
+        if isinstance(message, HumanMessage):
+            user_message = message.content
+            break
+    
+    # Initialize Gemini model for greeting generation
+    llm = ChatGoogleGenerativeAI(
+        model=configurable.query_generator_model,
+        temperature=0.7,
+        max_retries=2,
+        api_key=os.getenv("GEMINI_API_KEY"),
+    )
+    structured_llm = llm.with_structured_output(GreetingMessage)
+    
+    # Format the prompt for greeting generation
+    formatted_prompt = greeting_instructions.format(
+        user_query=user_message,
+        selected_date=state.get("selected_date", "not specified"),
+        current_date=get_current_date()
+    )
+    
+    result = structured_llm.invoke(formatted_prompt)
+    
+    # Create greeting message
+    greeting_content = f"{result.greeting}\n\n{result.acknowledgment}\n\n{result.next_steps}"
+    
+    return {
+        "messages": [AIMessage(content=greeting_content)],
+        "greeting_sent": True,
+    }
 
 
 def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
@@ -288,6 +323,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
