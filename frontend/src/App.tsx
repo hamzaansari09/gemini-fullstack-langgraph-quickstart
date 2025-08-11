@@ -126,7 +126,9 @@ export default function App() {
       ];
 
       if (isMarketingRequest) {
-        // Submit to marketing agent with image data
+        // For marketing requests, we need to create a new thread with marketing_agent
+        // Since we can't change assistantId dynamically, we'll need to handle this differently
+        // For now, we'll submit with the marketing agent state structure
         thread.submit({
           messages: newMessages,
           image_data: imageData,
@@ -210,6 +212,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
