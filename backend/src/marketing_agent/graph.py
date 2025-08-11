@@ -379,7 +379,7 @@ def route_after_takeaways(state: MarketingState) -> str:
 
 
 
-# Create the Marketing Agent Graph
+# Create the Marketing Agent Supervisor Graph
 builder = StateGraph(MarketingState, config_schema=Configuration)
 
 # Add nodes for each marketing analysis tool
@@ -389,18 +389,31 @@ builder.add_node("analyze_insights", analyze_ad_insights_tool)
 builder.add_node("suggest_improvements", suggest_ad_improvements_tool)
 builder.add_node("extract_takeaways", extract_key_takeaways_tool)
 
-# Set the entrypoint as `provide_date`
+# Set the entrypoint as `provide_date` - always start with date extraction
 builder.add_edge(START, "provide_date")
 
-# Add conditional edges to orchestrate the workflow
-builder.add_conditional_edges("provide_date", should_greet, ["greet_user", "analyze_insights"])
-builder.add_conditional_edges("greet_user", should_analyze_insights, ["analyze_insights"])
-builder.add_conditional_edges("analyze_insights", should_suggest_improvements, ["suggest_improvements"])
-builder.add_conditional_edges("suggest_improvements", should_extract_takeaways, ["extract_takeaways"])
-builder.add_conditional_edges("extract_takeaways", should_extract_takeaways, [END])
+# Define the supervisor agent workflow with conditional routing
+# Date extraction -> Greeting (always)
+builder.add_conditional_edges("provide_date", route_after_date_extraction, ["greet_user"])
 
-# Compile the graph
-graph = builder.compile(name="marketing-analyst-agent")
+# Greeting -> Insights analysis (if image data exists) or END (if no image)
+builder.add_conditional_edges("greet_user", route_after_greeting, ["analyze_insights", END])
+
+# Insights -> Improvements (if insights successful) or END (if failed)
+builder.add_conditional_edges("analyze_insights", route_after_insights, ["suggest_improvements", END])
+
+# Improvements -> Takeaways (if improvements successful) or END (if failed)
+builder.add_conditional_edges("suggest_improvements", route_after_improvements, ["extract_takeaways", END])
+
+# Takeaways -> END (workflow complete)
+builder.add_conditional_edges("extract_takeaways", route_after_takeaways, [END])
+
+# Compile the graph with optimized configuration for Gemini Vision models
+graph = builder.compile(
+    name="marketing-analyst-supervisor-agent",
+    checkpointer=None,  # Can be configured later for persistence
+)
+
 
 
 
