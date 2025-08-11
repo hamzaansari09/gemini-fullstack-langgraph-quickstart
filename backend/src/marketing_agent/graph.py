@@ -341,41 +341,34 @@ def extract_key_takeaways_tool(state: MarketingState, config: RunnableConfig) ->
     }
 
 
-def evaluate_research(
-    state: ReflectionState,
-    config: RunnableConfig,
-) -> OverallState:
-    """LangGraph routing function that determines the next step in the research flow.
+# Conditional routing functions
 
-    Controls the research loop by deciding whether to continue gathering information
-    or to finalize the summary based on the configured maximum number of research loops.
+def should_greet(state: MarketingState) -> str:
+    """Determine if we should greet the user."""
+    if not state.get("greeting_sent", False):
+        return "greet_user"
+    return "analyze_insights"
 
-    Args:
-        state: Current graph state containing the research loop count
-        config: Configuration for the runnable, including max_research_loops setting
 
-    Returns:
-        String literal indicating the next node to visit ("web_research" or "finalize_summary")
-    """
-    configurable = Configuration.from_runnable_config(config)
-    max_research_loops = (
-        state.get("max_research_loops")
-        if state.get("max_research_loops") is not None
-        else configurable.max_research_loops
-    )
-    if state["is_sufficient"] or state["research_loop_count"] >= max_research_loops:
-        return "finalize_answer"
-    else:
-        return [
-            Send(
-                "web_research",
-                {
-                    "search_query": follow_up_query,
-                    "id": state["number_of_ran_queries"] + int(idx),
-                },
-            )
-            for idx, follow_up_query in enumerate(state["follow_up_queries"])
-        ]
+def should_analyze_insights(state: MarketingState) -> str:
+    """Determine if we should analyze ad insights."""
+    if not state.get("insights"):
+        return "analyze_insights"
+    return "suggest_improvements"
+
+
+def should_suggest_improvements(state: MarketingState) -> str:
+    """Determine if we should suggest improvements."""
+    if not state.get("improvements"):
+        return "suggest_improvements"
+    return "extract_takeaways"
+
+
+def should_extract_takeaways(state: MarketingState) -> str:
+    """Determine if we should extract takeaways."""
+    if not state.get("takeaways"):
+        return "extract_takeaways"
+    return END
 
 
 def finalize_answer(state: OverallState, config: RunnableConfig):
@@ -452,6 +445,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
