@@ -67,9 +67,9 @@ export default function App() {
     reasoning_model?: string;
     image_data?: string;
     selected_date?: string | null;
-    insights?: any;
-    improvements?: any;
-    takeaways?: any;
+    insights?: AdInsight[];
+    improvements?: AdImprovement[];
+    takeaways?: AdTakeaway[];
     greeting_sent?: boolean;
     analysis_complete?: boolean;
   }>({
@@ -257,6 +257,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
