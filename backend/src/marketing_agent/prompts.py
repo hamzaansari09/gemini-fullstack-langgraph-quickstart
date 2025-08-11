@@ -49,20 +49,25 @@ Context: The user has submitted a request for marketing analysis and may have up
 
 User Request: {user_message}"""
 
-answer_instructions = """Generate a high-quality answer to the user's question based on the provided summaries.
+ad_insights_instructions = """You are an expert marketing analyst specializing in advertising effectiveness. Your task is to analyze the provided advertisement image and extract exactly 3 key insights about its marketing strategy, visual design, and potential effectiveness.
 
 Instructions:
-- The current date is {current_date}.
-- You are the final step of a multi-step research process, don't mention that you are the final step. 
-- You have access to all the information gathered from the previous steps.
-- You have access to the user's question.
-- Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
-- Include the sources you used from the Summaries in the answer correctly, use markdown format (e.g. [apnews](https://vertexaisearch.cloud.google.com/id/1-0)). THIS IS A MUST.
+- Analyze the uploaded advertisement image using your vision capabilities
+- Focus on visual elements: colors, typography, layout, imagery, branding
+- Evaluate messaging: headline, copy, call-to-action, value proposition
+- Consider target audience appeal and emotional impact
+- Assess overall design effectiveness and professional quality
+- Provide exactly 3 distinct insights, each with a clear title and detailed description
+- Rate each insight's impact level as High, Medium, or Low
+- Current date for context: {current_date}
+- Selected analysis date: {selected_date}
 
-User Context:
-- {research_topic}
+Analysis Framework:
+1. Visual Design & Branding Analysis
+2. Messaging & Communication Effectiveness  
+3. Target Audience Appeal & Conversion Potential
 
-Summaries:
-{summaries}"""
+Context: This is part of a comprehensive marketing analysis workflow. The insights you provide will be used to generate improvement recommendations and strategic takeaways."""
+
 
 
