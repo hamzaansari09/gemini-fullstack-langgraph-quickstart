@@ -100,8 +100,9 @@ export default function App() {
   }, [thread.messages, thread.isLoading, processedEventsTimeline]);
 
   const handleSubmit = useCallback(
-    (submittedInputValue: string, effort: string, model: string) => {
+    (submittedInputValue: string, effort: string, model: string, imageData?: string) => {
       if (!submittedInputValue.trim()) return;
+      setError(null);
       setProcessedEventsTimeline([]);
       hasFinalizeEventOccurredRef.current = false;
 
@@ -187,3 +188,4 @@ export default function App() {
     </div>
   );
 }
+
