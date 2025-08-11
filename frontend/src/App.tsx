@@ -117,8 +117,8 @@ export default function App() {
         ]);
       }
     },
-    onError: (error: Error) => {
-      setError(error.message);
+    onError: (error: unknown) => {
+      setError(error instanceof Error ? error.message : String(error));
     },
   });
 
@@ -257,4 +257,5 @@ export default function App() {
     </div>
   );
 }
+
 
