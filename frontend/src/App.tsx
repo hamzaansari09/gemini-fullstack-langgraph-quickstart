@@ -126,9 +126,10 @@ export default function App() {
       ];
 
       if (isMarketingRequest) {
-        // For marketing requests, we need to create a new thread with marketing_agent
-        // Since we can't change assistantId dynamically, we'll need to handle this differently
-        // For now, we'll submit with the marketing agent state structure
+        // NOTE: In a production environment, you would need to create separate threads
+        // for different agents or implement agent routing at the backend level.
+        // For this demo, we're submitting marketing agent state to the default agent.
+        // The backend would need to be configured to route to marketing_agent based on image_data presence.
         thread.submit({
           messages: newMessages,
           image_data: imageData,
@@ -212,6 +213,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
