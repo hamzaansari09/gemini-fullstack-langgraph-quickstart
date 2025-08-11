@@ -106,27 +106,9 @@ export default function App() {
       setProcessedEventsTimeline([]);
       hasFinalizeEventOccurredRef.current = false;
 
-      // convert effort to, initial_search_query_count and max_research_loops
-      // low means max 1 loop and 1 query
-      // medium means max 3 loops and 3 queries
-      // high means max 10 loops and 5 queries
-      let initial_search_query_count = 0;
-      let max_research_loops = 0;
-      switch (effort) {
-        case "low":
-          initial_search_query_count = 1;
-          max_research_loops = 1;
-          break;
-        case "medium":
-          initial_search_query_count = 3;
-          max_research_loops = 3;
-          break;
-        case "high":
-          initial_search_query_count = 5;
-          max_research_loops = 10;
-          break;
-      }
-
+      // Determine if this is a marketing agent request (has image data)
+      const isMarketingRequest = !!imageData;
+      
       const newMessages: Message[] = [
         ...(thread.messages || []),
         {
@@ -135,12 +117,45 @@ export default function App() {
           id: Date.now().toString(),
         },
       ];
-      thread.submit({
-        messages: newMessages,
-        initial_search_query_count: initial_search_query_count,
-        max_research_loops: max_research_loops,
-        reasoning_model: model,
-      });
+
+      if (isMarketingRequest) {
+        // Submit to marketing agent with image data
+        thread.submit({
+          messages: newMessages,
+          image_data: imageData,
+          selected_date: null, // Will be extracted by the date tool
+          insights: null,
+          improvements: null,
+          takeaways: null,
+          greeting_sent: false,
+          analysis_complete: false,
+        });
+      } else {
+        // Original research agent logic
+        let initial_search_query_count = 0;
+        let max_research_loops = 0;
+        switch (effort) {
+          case "low":
+            initial_search_query_count = 1;
+            max_research_loops = 1;
+            break;
+          case "medium":
+            initial_search_query_count = 3;
+            max_research_loops = 3;
+            break;
+          case "high":
+            initial_search_query_count = 5;
+            max_research_loops = 10;
+            break;
+        }
+
+        thread.submit({
+          messages: newMessages,
+          initial_search_query_count: initial_search_query_count,
+          max_research_loops: max_research_loops,
+          reasoning_model: model,
+        });
+      }
     },
     [thread]
   );
@@ -188,4 +203,5 @@ export default function App() {
     </div>
   );
 }
+
 
