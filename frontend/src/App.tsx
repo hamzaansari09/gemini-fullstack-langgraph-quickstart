@@ -178,9 +178,9 @@ export default function App() {
           messages: newMessages,
           image_data: imageData,
           selected_date: null, // Will be extracted by the date tool
-          insights: null,
-          improvements: null,
-          takeaways: null,
+          insights: undefined,
+          improvements: undefined,
+          takeaways: undefined,
           greeting_sent: false,
           analysis_complete: false,
         });
@@ -257,5 +257,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
