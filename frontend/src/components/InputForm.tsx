@@ -9,10 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "./ImageUpload";
 
-// Updated InputFormProps
+// Updated InputFormProps to include image data
 interface InputFormProps {
-  onSubmit: (inputValue: string, effort: string, model: string) => void;
+  onSubmit: (inputValue: string, effort: string, model: string, imageData?: string) => void;
   onCancel: () => void;
   isLoading: boolean;
   hasHistory: boolean;
@@ -177,3 +178,4 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
