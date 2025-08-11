@@ -6,6 +6,50 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { ChatMessagesView } from "@/components/ChatMessagesView";
 import { Button } from "@/components/ui/button";
 
+// Type definitions for marketing agent data structures
+interface AdInsight {
+  title: string;
+  description: string;
+  impact_level: 'High' | 'Medium' | 'Low';
+}
+
+interface AdImprovement {
+  category: string;
+  suggestion: string;
+  expected_impact: string;
+  priority: 'High' | 'Medium' | 'Low';
+  implementation_notes: string;
+}
+
+interface AdTakeaway {
+  relevance: 'Strategic' | 'Tactical' | 'Operational';
+  takeaway: string;
+  actionable_insight: string;
+}
+
+// Type definitions for event parameters
+interface Source {
+  label?: string;
+  value?: string;
+  short_url?: string;
+}
+
+interface UpdateEvent {
+  generate_query?: {
+    search_query?: string[];
+  };
+  web_research?: {
+    sources_gathered?: Source[];
+  };
+  reflection?: Record<string, unknown>;
+  finalize_answer?: Record<string, unknown>;
+  provide_date?: Record<string, unknown>;
+  greet_user?: Record<string, unknown>;
+  analyze_insights?: Record<string, unknown>;
+  suggest_improvements?: Record<string, unknown>;
+  extract_takeaways?: Record<string, unknown>;
+}
+
 export default function App() {
   const [processedEventsTimeline, setProcessedEventsTimeline] = useState<
     ProcessedEvent[]
@@ -18,16 +62,23 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const thread = useStream<{
     messages: Message[];
-    initial_search_query_count: number;
-    max_research_loops: number;
-    reasoning_model: string;
+    initial_search_query_count?: number;
+    max_research_loops?: number;
+    reasoning_model?: string;
+    image_data?: string;
+    selected_date?: string | null;
+    insights?: AdInsight[];
+    improvements?: AdImprovement[];
+    takeaways?: AdTakeaway[];
+    greeting_sent?: boolean;
+    analysis_complete?: boolean;
   }>({
     apiUrl: import.meta.env.DEV
       ? "http://localhost:2024"
       : "http://localhost:8123",
-    assistantId: "agent",
+    assistantId: "agent", // Default to research agent, will be overridden for marketing requests
     messagesKey: "messages",
-    onUpdateEvent: (event: any) => {
+    onUpdateEvent: (event: UpdateEvent) => {
       let processedEvent: ProcessedEvent | null = null;
       if (event.generate_query) {
         processedEvent = {
@@ -38,7 +89,7 @@ export default function App() {
         const sources = event.web_research.sources_gathered || [];
         const numSources = sources.length;
         const uniqueLabels = [
-          ...new Set(sources.map((s: any) => s.label).filter(Boolean)),
+          ...new Set(sources.map((s: Source) => s.label).filter(Boolean)),
         ];
         const exampleLabels = uniqueLabels.slice(0, 3).join(", ");
         processedEvent = {
@@ -66,8 +117,8 @@ export default function App() {
         ]);
       }
     },
-    onError: (error: any) => {
-      setError(error.message);
+    onError: (error: unknown) => {
+      setError(error instanceof Error ? error.message : String(error));
     },
   });
 
@@ -100,32 +151,15 @@ export default function App() {
   }, [thread.messages, thread.isLoading, processedEventsTimeline]);
 
   const handleSubmit = useCallback(
-    (submittedInputValue: string, effort: string, model: string) => {
+    (submittedInputValue: string, effort: string, model: string, imageData?: string) => {
       if (!submittedInputValue.trim()) return;
+      setError(null);
       setProcessedEventsTimeline([]);
       hasFinalizeEventOccurredRef.current = false;
 
-      // convert effort to, initial_search_query_count and max_research_loops
-      // low means max 1 loop and 1 query
-      // medium means max 3 loops and 3 queries
-      // high means max 10 loops and 5 queries
-      let initial_search_query_count = 0;
-      let max_research_loops = 0;
-      switch (effort) {
-        case "low":
-          initial_search_query_count = 1;
-          max_research_loops = 1;
-          break;
-        case "medium":
-          initial_search_query_count = 3;
-          max_research_loops = 3;
-          break;
-        case "high":
-          initial_search_query_count = 5;
-          max_research_loops = 10;
-          break;
-      }
-
+      // Determine if this is a marketing agent request (has image data)
+      const isMarketingRequest = !!imageData;
+      
       const newMessages: Message[] = [
         ...(thread.messages || []),
         {
@@ -134,12 +168,48 @@ export default function App() {
           id: Date.now().toString(),
         },
       ];
-      thread.submit({
-        messages: newMessages,
-        initial_search_query_count: initial_search_query_count,
-        max_research_loops: max_research_loops,
-        reasoning_model: model,
-      });
+
+      if (isMarketingRequest) {
+        // NOTE: In a production environment, you would need to create separate threads
+        // for different agents or implement agent routing at the backend level.
+        // For this demo, we're submitting marketing agent state to the default agent.
+        // The backend would need to be configured to route to marketing_agent based on image_data presence.
+        thread.submit({
+          messages: newMessages,
+          image_data: imageData,
+          selected_date: null, // Will be extracted by the date tool
+          insights: undefined,
+          improvements: undefined,
+          takeaways: undefined,
+          greeting_sent: false,
+          analysis_complete: false,
+        });
+      } else {
+        // Original research agent logic
+        let initial_search_query_count = 0;
+        let max_research_loops = 0;
+        switch (effort) {
+          case "low":
+            initial_search_query_count = 1;
+            max_research_loops = 1;
+            break;
+          case "medium":
+            initial_search_query_count = 3;
+            max_research_loops = 3;
+            break;
+          case "high":
+            initial_search_query_count = 5;
+            max_research_loops = 10;
+            break;
+        }
+
+        thread.submit({
+          messages: newMessages,
+          initial_search_query_count: initial_search_query_count,
+          max_research_loops: max_research_loops,
+          reasoning_model: model,
+        });
+      }
     },
     [thread]
   );
@@ -187,3 +257,6 @@ export default function App() {
     </div>
   );
 }
+
+
+

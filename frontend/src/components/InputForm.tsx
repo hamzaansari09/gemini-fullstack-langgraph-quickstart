@@ -9,10 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "./ImageUpload";
 
-// Updated InputFormProps
+// Updated InputFormProps to include image data
 interface InputFormProps {
-  onSubmit: (inputValue: string, effort: string, model: string) => void;
+  onSubmit: (inputValue: string, effort: string, model: string, imageData?: string) => void;
   onCancel: () => void;
   isLoading: boolean;
   hasHistory: boolean;
@@ -27,12 +28,18 @@ export const InputForm: React.FC<InputFormProps> = ({
   const [internalInputValue, setInternalInputValue] = useState("");
   const [effort, setEffort] = useState("medium");
   const [model, setModel] = useState("gemini-2.5-flash-preview-04-17");
+  const [imageData, setImageData] = useState<string | null>(null);
 
   const handleInternalSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!internalInputValue.trim()) return;
-    onSubmit(internalInputValue, effort, model);
+    onSubmit(internalInputValue, effort, model, imageData || undefined);
     setInternalInputValue("");
+    setImageData(null);
+  };
+
+  const handleImageSelect = (selectedImageData: string | null) => {
+    setImageData(selectedImageData);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -59,7 +66,7 @@ export const InputForm: React.FC<InputFormProps> = ({
           value={internalInputValue}
           onChange={(e) => setInternalInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Who won the Euro 2024 and scored the most goals?"
+          placeholder="Upload an ad image and ask for marketing analysis - insights, improvements, and strategic takeaways"
           className={`w-full text-neutral-100 placeholder-neutral-500 resize-none border-0 focus:outline-none focus:ring-0 outline-none focus-visible:ring-0 shadow-none
                         md:text-base  min-h-[56px] max-h-[200px]`}
           rows={1}
@@ -92,6 +99,16 @@ export const InputForm: React.FC<InputFormProps> = ({
           )}
         </div>
       </div>
+      
+      {/* Image Upload Section */}
+      <div className="px-1 py-2">
+        <ImageUpload
+          onImageSelect={handleImageSelect}
+          selectedImage={imageData}
+          disabled={isLoading}
+        />
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="flex flex-row gap-2">
           <div className="flex flex-row gap-2 bg-neutral-700 border-neutral-600 text-neutral-300 focus:ring-neutral-500 rounded-xl rounded-t-sm pl-2  max-w-[100%] sm:max-w-[90%]">
@@ -177,3 +194,12 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
+
+
+
+
+
+
+
+

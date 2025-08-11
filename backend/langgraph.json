@@ -1,10 +1,13 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "agent": "./src/agent/graph.py:graph"
+    "agent": "./src/agent/graph.py:graph",
+    "marketing_agent": "./src/marketing_agent/graph.py:graph"
   },
   "http": {
-    "app": "./src/agent/app.py:app"
+    "app": "./src/agent/app.py:app",
+    "marketing_app": "./src/marketing_agent/app.py:app"
   },
   "env": ".env"
 }
+

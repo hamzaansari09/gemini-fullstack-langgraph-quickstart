@@ -17,6 +17,7 @@ import {
 type MdComponentProps = {
   className?: string;
   children?: ReactNode;
+  href?: string;
   [key: string]: any;
 };
 
@@ -320,3 +321,7 @@ export function ChatMessagesView({
     </div>
   );
 }
+
+
+
+
