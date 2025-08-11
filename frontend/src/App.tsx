@@ -78,7 +78,7 @@ export default function App() {
       : "http://localhost:8123",
     assistantId: "agent", // Default to research agent, will be overridden for marketing requests
     messagesKey: "messages",
-    onUpdateEvent: (event: any) => {
+    onUpdateEvent: (event: UpdateEvent) => {
       let processedEvent: ProcessedEvent | null = null;
       if (event.generate_query) {
         processedEvent = {
@@ -257,6 +257,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
