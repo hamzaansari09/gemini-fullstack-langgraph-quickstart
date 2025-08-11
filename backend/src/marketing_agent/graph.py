@@ -341,33 +341,39 @@ def extract_key_takeaways_tool(state: MarketingState, config: RunnableConfig) ->
     }
 
 
-# Conditional routing functions
+# Conditional routing functions for supervisor agent workflow
 
-def should_greet(state: MarketingState) -> str:
-    """Determine if we should greet the user."""
-    if not state.get("greeting_sent", False):
-        return "greet_user"
+def route_after_date_extraction(state: MarketingState) -> str:
+    """Route after date extraction - always proceed to greeting."""
+    return "greet_user"
+
+
+def route_after_greeting(state: MarketingState) -> str:
+    """Route after greeting - check if we have image data to analyze."""
+    if not state.get("image_data"):
+        # If no image data, we can't proceed with analysis
+        return END
     return "analyze_insights"
 
 
-def should_analyze_insights(state: MarketingState) -> str:
-    """Determine if we should analyze ad insights."""
-    if not state.get("insights"):
-        return "analyze_insights"
-    return "suggest_improvements"
-
-
-def should_suggest_improvements(state: MarketingState) -> str:
-    """Determine if we should suggest improvements."""
-    if not state.get("improvements"):
+def route_after_insights(state: MarketingState) -> str:
+    """Route after insights analysis - proceed to improvements if insights exist."""
+    if state.get("insights"):
         return "suggest_improvements"
-    return "extract_takeaways"
+    # If insights failed, end the workflow
+    return END
 
 
-def should_extract_takeaways(state: MarketingState) -> str:
-    """Determine if we should extract takeaways."""
-    if not state.get("takeaways"):
+def route_after_improvements(state: MarketingState) -> str:
+    """Route after improvements - proceed to takeaways if improvements exist."""
+    if state.get("improvements"):
         return "extract_takeaways"
+    # If improvements failed, end the workflow
+    return END
+
+
+def route_after_takeaways(state: MarketingState) -> str:
+    """Route after takeaways - workflow is complete."""
     return END
 
 
@@ -395,6 +401,7 @@ builder.add_conditional_edges("extract_takeaways", should_extract_takeaways, [EN
 
 # Compile the graph
 graph = builder.compile(name="marketing-analyst-agent")
+
 
 
 
