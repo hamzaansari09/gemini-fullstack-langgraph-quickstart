@@ -190,17 +190,9 @@ def analyze_ad_insights_tool(state: MarketingState, config: RunnableConfig) -> D
         "insights": insights_list,
         "messages": [AIMessage(content=insights_content)],
     }
-    modified_text = insert_citation_markers(response.text, citations)
-    sources_gathered = [item for citation in citations for item in citation["segments"]]
-
-    return {
-        "sources_gathered": sources_gathered,
-        "search_query": [state["search_query"]],
-        "web_research_result": [modified_text],
-    }
 
 
-def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
+def suggest_ad_improvements_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
     """LangGraph node that identifies knowledge gaps and generates potential follow-up queries.
 
     Analyzes the current summary to identify areas for further research and generates
@@ -355,6 +347,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
