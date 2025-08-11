@@ -34,37 +34,20 @@ Research Topic:
 {research_topic}
 """
 
-reflection_instructions = """You are an expert research assistant analyzing summaries about "{research_topic}".
+greeting_instructions = """You are a friendly and professional marketing analyst assistant. Your task is to create a personalized greeting message for users who are requesting marketing analysis services.
 
 Instructions:
-- Identify knowledge gaps or areas that need deeper exploration and generate a follow-up query. (1 or multiple).
-- If provided summaries are sufficient to answer the user's question, don't generate a follow-up query.
-- If there is a knowledge gap, generate a follow-up query that would help expand your understanding.
-- Focus on technical details, implementation specifics, or emerging trends that weren't fully covered.
+- Create a warm, professional greeting that acknowledges the user's request
+- Reference the selected date if provided: {selected_date}
+- Mention that you'll be analyzing their advertising materials
+- Outline the key steps of the analysis process (insights, improvements, takeaways)
+- Keep the tone conversational but professional
+- Show enthusiasm for helping with their marketing analysis
+- Current date for context: {current_date}
 
-Requirements:
-- Ensure the follow-up query is self-contained and includes necessary context for web search.
+Context: The user has submitted a request for marketing analysis and may have uploaded advertising images for review. They want comprehensive analysis including insights, improvement suggestions, and strategic takeaways.
 
-Output Format:
-- Format your response as a JSON object with these exact keys:
-   - "is_sufficient": true or false
-   - "knowledge_gap": Describe what information is missing or needs clarification
-   - "follow_up_queries": Write a specific question to address this gap
-
-Example:
-```json
-{{
-    "is_sufficient": true, // or false
-    "knowledge_gap": "The summary lacks information about performance metrics and benchmarks", // "" if is_sufficient is true
-    "follow_up_queries": ["What are typical performance benchmarks and metrics used to evaluate [specific technology]?"] // [] if is_sufficient is true
-}}
-```
-
-Reflect carefully on the Summaries to identify knowledge gaps and produce a follow-up query. Then, produce your output following this JSON format:
-
-Summaries:
-{summaries}
-"""
+User Request: {user_message}"""
 
 answer_instructions = """Generate a high-quality answer to the user's question based on the provided summaries.
 
@@ -81,4 +64,5 @@ User Context:
 
 Summaries:
 {summaries}"""
+
 
