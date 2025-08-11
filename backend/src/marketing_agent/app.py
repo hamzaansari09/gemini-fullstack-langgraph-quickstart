@@ -1,4 +1,4 @@
-"""Marketing Agent FastAPI Application
+"""Marketing Agent FastAPI Application.
 
 This module defines the FastAPI application for the Marketing Analyst Supervisor Agent.
 It serves the marketing agent graph and provides endpoints for ad analysis workflows.
@@ -31,9 +31,6 @@ def create_frontend_router(build_dir="../frontend/dist"):
     build_path = pathlib.Path(__file__).parent.parent.parent / build_dir
 
     if not build_path.is_dir() or not (build_path / "index.html").is_file():
-        print(
-            f"WARN: Frontend build directory not found or incomplete at {build_path}. Serving frontend will likely fail."
-        )
         # Return a dummy router if build isn't ready
         from starlette.routing import Route
 

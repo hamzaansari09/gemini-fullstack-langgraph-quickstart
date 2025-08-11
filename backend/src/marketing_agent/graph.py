@@ -134,7 +134,7 @@ def analyze_ad_insights_tool(state: MarketingState, config: RunnableConfig) -> D
     Returns:
         Dictionary with state update including ad insights
     """
-    configurable = Configuration.from_runnable_config(config)
+    Configuration.from_runnable_config(config)
     
     if not state.get("image_data"):
         return {
@@ -202,7 +202,7 @@ def suggest_ad_improvements_tool(state: MarketingState, config: RunnableConfig) 
     Returns:
         Dictionary with state update including improvement suggestions
     """
-    configurable = Configuration.from_runnable_config(config)
+    Configuration.from_runnable_config(config)
     
     if not state.get("image_data"):
         return {
