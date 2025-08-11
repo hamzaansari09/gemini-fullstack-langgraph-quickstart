@@ -378,73 +378,29 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     combining them with the running summary to create a well-structured
     research report with proper citations.
 
-    Args:
-        state: Current graph state containing the running summary and sources gathered
+# Create the Marketing Agent Graph
+builder = StateGraph(MarketingState, config_schema=Configuration)
 
-    Returns:
-        Dictionary with state update, including running_summary key containing the formatted final summary with sources
-    """
-    configurable = Configuration.from_runnable_config(config)
-    reasoning_model = state.get("reasoning_model") or configurable.answer_model
+# Add nodes for each marketing analysis tool
+builder.add_node("provide_date", provide_date_tool)
+builder.add_node("greet_user", greet_user_tool)
+builder.add_node("analyze_insights", analyze_ad_insights_tool)
+builder.add_node("suggest_improvements", suggest_ad_improvements_tool)
+builder.add_node("extract_takeaways", extract_key_takeaways_tool)
 
-    # Format the prompt
-    current_date = get_current_date()
-    formatted_prompt = answer_instructions.format(
-        current_date=current_date,
-        research_topic=get_research_topic(state["messages"]),
-        summaries="\n---\n\n".join(state["web_research_result"]),
-    )
+# Set the entrypoint as `provide_date`
+builder.add_edge(START, "provide_date")
 
-    # init Reasoning Model, default to Gemini 2.5 Flash
-    llm = ChatGoogleGenerativeAI(
-        model=reasoning_model,
-        temperature=0,
-        max_retries=2,
-        api_key=os.getenv("GEMINI_API_KEY"),
-    )
-    result = llm.invoke(formatted_prompt)
+# Add conditional edges to orchestrate the workflow
+builder.add_conditional_edges("provide_date", should_greet, ["greet_user", "analyze_insights"])
+builder.add_conditional_edges("greet_user", should_analyze_insights, ["analyze_insights"])
+builder.add_conditional_edges("analyze_insights", should_suggest_improvements, ["suggest_improvements"])
+builder.add_conditional_edges("suggest_improvements", should_extract_takeaways, ["extract_takeaways"])
+builder.add_conditional_edges("extract_takeaways", should_extract_takeaways, [END])
 
-    # Replace the short urls with the original urls and add all used urls to the sources_gathered
-    unique_sources = []
-    for source in state["sources_gathered"]:
-        if source["short_url"] in result.content:
-            result.content = result.content.replace(
-                source["short_url"], source["value"]
-            )
-            unique_sources.append(source)
+# Compile the graph
+graph = builder.compile(name="marketing-analyst-agent")
 
-    return {
-        "messages": [AIMessage(content=result.content)],
-        "sources_gathered": unique_sources,
-    }
-
-
-# Create our Agent Graph
-builder = StateGraph(OverallState, config_schema=Configuration)
-
-# Define the nodes we will cycle between
-builder.add_node("generate_query", generate_query)
-builder.add_node("web_research", web_research)
-builder.add_node("reflection", reflection)
-builder.add_node("finalize_answer", finalize_answer)
-
-# Set the entrypoint as `generate_query`
-# This means that this node is the first one called
-builder.add_edge(START, "generate_query")
-# Add conditional edge to continue with search queries in a parallel branch
-builder.add_conditional_edges(
-    "generate_query", continue_to_web_research, ["web_research"]
-)
-# Reflect on the web research
-builder.add_edge("web_research", "reflection")
-# Evaluate the research
-builder.add_conditional_edges(
-    "reflection", evaluate_research, ["web_research", "finalize_answer"]
-)
-# Finalize the answer
-builder.add_edge("finalize_answer", END)
-
-graph = builder.compile(name="pro-search-agent")
 
 
 
