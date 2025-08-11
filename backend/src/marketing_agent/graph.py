@@ -124,40 +124,72 @@ def greet_user_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, 
     }
 
 
-def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
-    """LangGraph node that performs web research using the native Google Search API tool.
-
-    Executes a web search using the native Google Search API tool in combination with Gemini 2.0 Flash.
-
+def analyze_ad_insights_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
+    """Use Gemini Vision models for extracting 3 key insights from uploaded ad images.
+    
     Args:
-        state: Current graph state containing the search query and research loop count
-        config: Configuration for the runnable, including search API settings
-
+        state: Current marketing state containing image data
+        config: Configuration for the runnable
+        
     Returns:
-        Dictionary with state update, including sources_gathered, research_loop_count, and web_research_results
+        Dictionary with state update including ad insights
     """
-    # Configure
     configurable = Configuration.from_runnable_config(config)
-    formatted_prompt = web_searcher_instructions.format(
-        current_date=get_current_date(),
-        research_topic=state["search_query"],
+    
+    if not state.get("image_data"):
+        return {
+            "messages": [AIMessage(content="No image data provided for analysis. Please upload an ad image to continue.")],
+        }
+    
+    # Initialize Gemini Vision model for image analysis
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",  # Use vision-capable model
+        temperature=0.3,
+        max_retries=2,
+        api_key=os.getenv("GEMINI_API_KEY"),
     )
-
-    # Uses the google genai client as the langchain client doesn't return grounding metadata
-    response = genai_client.models.generate_content(
-        model=configurable.query_generator_model,
-        contents=formatted_prompt,
-        config={
-            "tools": [{"google_search": {}}],
-            "temperature": 0,
-        },
+    structured_llm = llm.with_structured_output(AdInsights)
+    
+    # Prepare image content for vision model
+    image_content = {
+        "type": "image_url",
+        "image_url": {"url": f"data:image/jpeg;base64,{state['image_data']}"}
+    }
+    
+    # Format the prompt for ad insights analysis
+    formatted_prompt = ad_insights_instructions.format(
+        current_date=get_current_date()
     )
-    # resolve the urls to short urls for saving tokens and time
-    resolved_urls = resolve_urls(
-        response.candidates[0].grounding_metadata.grounding_chunks, state["id"]
-    )
-    # Gets the citations and adds them to the generated text
-    citations = get_citations(response, resolved_urls)
+    
+    # Create message with both text and image
+    messages = [
+        HumanMessage(content=[
+            {"type": "text", "text": formatted_prompt},
+            image_content
+        ])
+    ]
+    
+    result = structured_llm.invoke(messages)
+    
+    # Convert insights to list format for state storage
+    insights_list = [
+        {
+            "title": insight.title,
+            "description": insight.description,
+            "impact_level": insight.impact_level
+        }
+        for insight in result.insights
+    ]
+    
+    # Create response message
+    insights_content = f"## 🔍 Ad Analysis Insights\n\n{result.overall_assessment}\n\n"
+    for i, insight in enumerate(result.insights, 1):
+        insights_content += f"### {i}. {insight.title} ({insight.impact_level} Impact)\n{insight.description}\n\n"
+    
+    return {
+        "insights": insights_list,
+        "messages": [AIMessage(content=insights_content)],
+    }
     modified_text = insert_citation_markers(response.text, citations)
     sources_gathered = [item for citation in citations for item in citation["segments"]]
 
@@ -323,6 +355,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
