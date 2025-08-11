@@ -6,37 +6,69 @@ from langchain_core.runnables import RunnableConfig
 
 
 class Configuration(BaseModel):
-    """The configuration for the agent."""
+    """The configuration for the marketing analyst agent."""
 
-    query_generator_model: str = Field(
+    date_extraction_model: str = Field(
         default="gemini-2.0-flash",
         metadata={
-            "description": "The name of the language model to use for the agent's query generation."
+            "description": "The name of the language model to use for date extraction from user queries."
         },
     )
 
-    reflection_model: str = Field(
+    greeting_model: str = Field(
+        default="gemini-2.0-flash",
+        metadata={
+            "description": "The name of the language model to use for generating personalized greetings."
+        },
+    )
+
+    vision_model: str = Field(
+        default="gemini-2.0-flash",
+        metadata={
+            "description": "The name of the vision model to use for ad image analysis and insights generation."
+        },
+    )
+
+    improvements_model: str = Field(
+        default="gemini-2.0-flash",
+        metadata={
+            "description": "The name of the vision model to use for generating ad improvement suggestions."
+        },
+    )
+
+    reasoning_model: str = Field(
         default="gemini-2.5-flash",
         metadata={
-            "description": "The name of the language model to use for the agent's reflection."
+            "description": "The name of the reasoning model to use for synthesizing takeaways and strategic insights."
         },
     )
 
-    answer_model: str = Field(
-        default="gemini-2.5-pro",
+    vision_temperature: float = Field(
+        default=0.1,
         metadata={
-            "description": "The name of the language model to use for the agent's answer."
+            "description": "Temperature setting for vision model calls (lower for more consistent analysis)."
         },
     )
 
-    number_of_initial_queries: int = Field(
-        default=3,
-        metadata={"description": "The number of initial search queries to generate."},
+    reasoning_temperature: float = Field(
+        default=0.2,
+        metadata={
+            "description": "Temperature setting for reasoning model calls (slightly higher for creative insights)."
+        },
     )
 
-    max_research_loops: int = Field(
-        default=2,
-        metadata={"description": "The maximum number of research loops to perform."},
+    max_image_size_mb: int = Field(
+        default=10,
+        metadata={
+            "description": "Maximum allowed image size in megabytes for ad analysis."
+        },
+    )
+
+    supported_image_formats: list[str] = Field(
+        default=["jpg", "jpeg", "png", "webp"],
+        metadata={
+            "description": "List of supported image formats for ad analysis."
+        },
     )
 
     @classmethod
@@ -58,3 +90,4 @@ class Configuration(BaseModel):
         values = {k: v for k, v in raw_values.items() if v is not None}
 
         return cls(**values)
+
