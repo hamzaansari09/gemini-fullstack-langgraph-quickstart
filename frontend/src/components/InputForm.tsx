@@ -34,8 +34,15 @@ export const InputForm: React.FC<InputFormProps> = ({
   const handleInternalSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!internalInputValue.trim()) return;
-    onSubmit(internalInputValue, effort, model);
+    onSubmit(internalInputValue, effort, model, imageData || undefined);
     setInternalInputValue("");
+    setImageData(null);
+    setImageName(undefined);
+  };
+
+  const handleImageSelect = (selectedImageData: string | null, fileName?: string) => {
+    setImageData(selectedImageData);
+    setImageName(fileName);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -180,5 +187,6 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
 
 
