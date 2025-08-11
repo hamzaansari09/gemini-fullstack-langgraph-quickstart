@@ -102,6 +102,16 @@ export const InputForm: React.FC<InputFormProps> = ({
           )}
         </div>
       </div>
+      
+      {/* Image Upload Section */}
+      <div className="px-1 py-2">
+        <ImageUpload
+          onImageSelect={handleImageSelect}
+          selectedImage={imageData}
+          disabled={isLoading}
+        />
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="flex flex-row gap-2">
           <div className="flex flex-row gap-2 bg-neutral-700 border-neutral-600 text-neutral-300 focus:ring-neutral-500 rounded-xl rounded-t-sm pl-2  max-w-[100%] sm:max-w-[90%]">
@@ -187,6 +197,7 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
 
 
 
