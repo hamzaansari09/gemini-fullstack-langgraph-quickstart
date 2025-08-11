@@ -339,11 +339,6 @@ def extract_key_takeaways_tool(state: MarketingState, config: RunnableConfig) ->
         "messages": [AIMessage(content=takeaways_content)],
         "analysis_complete": True,
     }
-        "knowledge_gap": result.knowledge_gap,
-        "follow_up_queries": result.follow_up_queries,
-        "research_loop_count": state["research_loop_count"],
-        "number_of_ran_queries": len(state["search_query"]),
-    }
 
 
 def evaluate_research(
@@ -457,6 +452,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
