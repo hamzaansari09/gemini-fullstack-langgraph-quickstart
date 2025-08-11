@@ -38,7 +38,7 @@ export const InputForm: React.FC<InputFormProps> = ({
     setImageData(null);
   };
 
-  const handleImageSelect = (selectedImageData: string | null, fileName?: string) => {
+  const handleImageSelect = (selectedImageData: string | null) => {
     setImageData(selectedImageData);
   };
 
@@ -194,6 +194,7 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
 
 
 
