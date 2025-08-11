@@ -38,43 +38,44 @@ genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 # Marketing Analysis Tool Functions
 
 def provide_date_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
-    """LangGraph node that generates search queries based on the User's question.
-
-    Uses Gemini 2.0 Flash to create an optimized search queries for web research based on
-    the User's question.
-
+    """Extract and return the user-selected date from the query.
+    
     Args:
-        state: Current graph state containing the User's question
-        config: Configuration for the runnable, including LLM provider settings
-
+        state: Current marketing state containing user messages
+        config: Configuration for the runnable
+        
     Returns:
-        Dictionary with state update, including search_query key containing the generated queries
+        Dictionary with state update including selected_date
     """
     configurable = Configuration.from_runnable_config(config)
-
-    # check for custom initial search query count
-    if state.get("initial_search_query_count") is None:
-        state["initial_search_query_count"] = configurable.number_of_initial_queries
-
-    # init Gemini 2.0 Flash
+    
+    # Get the latest user message
+    user_message = ""
+    for message in reversed(state["messages"]):
+        if isinstance(message, HumanMessage):
+            user_message = message.content
+            break
+    
+    # Initialize Gemini model for date extraction
     llm = ChatGoogleGenerativeAI(
         model=configurable.query_generator_model,
-        temperature=1.0,
+        temperature=0,
         max_retries=2,
         api_key=os.getenv("GEMINI_API_KEY"),
     )
-    structured_llm = llm.with_structured_output(SearchQueryList)
-
-    # Format the prompt
-    current_date = get_current_date()
-    formatted_prompt = query_writer_instructions.format(
-        current_date=current_date,
-        research_topic=get_research_topic(state["messages"]),
-        number_queries=state["initial_search_query_count"],
+    structured_llm = llm.with_structured_output(DateExtraction)
+    
+    # Format the prompt for date extraction
+    formatted_prompt = date_extraction_instructions.format(
+        user_query=user_message,
+        current_date=get_current_date()
     )
-    # Generate the search queries
+    
     result = structured_llm.invoke(formatted_prompt)
-    return {"search_query": result.query}
+    
+    return {
+        "selected_date": result.selected_date if result.date_found else None,
+    }
 
 
 def continue_to_web_research(state: QueryGenerationState):
@@ -287,6 +288,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
