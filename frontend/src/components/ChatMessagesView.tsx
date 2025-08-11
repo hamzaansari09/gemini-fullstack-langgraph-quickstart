@@ -18,8 +18,7 @@ type MdComponentProps = {
   className?: string;
   children?: ReactNode;
   href?: string;
-  [key: string]: unknown;
-};
+} & Record<string, unknown>;
 
 // Markdown components (from former ReportView.tsx)
 const mdComponents = {
@@ -321,5 +320,6 @@ export function ChatMessagesView({
     </div>
   );
 }
+
 
 
