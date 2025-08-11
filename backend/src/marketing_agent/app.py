@@ -1,10 +1,24 @@
-# mypy: disable - error - code = "no-untyped-def,misc"
+"""Marketing Agent FastAPI Application
+
+This module defines the FastAPI application for the Marketing Analyst Supervisor Agent.
+It serves the marketing agent graph and provides endpoints for ad analysis workflows.
+"""
+
 import pathlib
 from fastapi import FastAPI, Response
 from fastapi.staticfiles import StaticFiles
+from langgraph.graph import StateGraph
 
-# Define the FastAPI app
-app = FastAPI()
+from marketing_agent.graph import graph
+from marketing_agent.state import MarketingState
+from marketing_agent.configuration import Configuration
+
+# Define the FastAPI app for the marketing agent
+app = FastAPI(
+    title="Marketing Analyst Supervisor Agent",
+    description="AI-powered marketing analysis agent for advertising insights, improvements, and strategic takeaways",
+    version="1.0.0",
+)
 
 
 def create_frontend_router(build_dir="../frontend/dist"):
@@ -37,9 +51,43 @@ def create_frontend_router(build_dir="../frontend/dist"):
     return StaticFiles(directory=build_path, html=True)
 
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for the marketing agent."""
+    return {
+        "status": "healthy",
+        "agent": "marketing-analyst-supervisor-agent",
+        "version": "1.0.0"
+    }
+
+
+# Agent info endpoint
+@app.get("/agent/info")
+async def agent_info():
+    """Get information about the marketing agent capabilities."""
+    return {
+        "name": "Marketing Analyst Supervisor Agent",
+        "description": "AI-powered marketing analysis for advertising insights and strategic recommendations",
+        "capabilities": [
+            "Date extraction from user queries",
+            "Personalized greeting generation",
+            "Ad image analysis using Gemini Vision",
+            "Performance improvement suggestions",
+            "Strategic takeaways synthesis"
+        ],
+        "supported_formats": ["jpg", "jpeg", "png", "webp"],
+        "max_image_size": "10MB"
+    }
+
+
 # Mount the frontend under /app to not conflict with the LangGraph API routes
 app.mount(
     "/app",
     create_frontend_router(),
     name="frontend",
 )
+
+# Export the graph for LangGraph server integration
+__all__ = ["app", "graph"]
+
