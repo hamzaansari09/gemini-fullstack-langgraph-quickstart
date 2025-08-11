@@ -6,32 +6,19 @@ def get_current_date():
     return datetime.now().strftime("%B %d, %Y")
 
 
-query_writer_instructions = """Your goal is to generate sophisticated and diverse web search queries. These queries are intended for an advanced automated web research tool capable of analyzing complex results, following links, and synthesizing information.
+date_extraction_instructions = """You are a date extraction specialist. Your task is to identify and extract date information from user messages related to marketing analysis requests.
 
 Instructions:
-- Always prefer a single search query, only add another query if the original question requests multiple aspects or elements and one query is not enough.
-- Each query should focus on one specific aspect of the original question.
-- Don't produce more than {number_queries} queries.
-- Queries should be diverse, if the topic is broad, generate more than 1 query.
-- Don't generate multiple similar queries, 1 is enough.
-- Query should ensure that the most current information is gathered. The current date is {current_date}.
+- Look for explicit date mentions (e.g., "January 15, 2024", "last week", "Q3 2023")
+- Look for relative date references (e.g., "yesterday", "last month", "this quarter")
+- Look for campaign-specific dates (e.g., "campaign launch date", "holiday season")
+- If no date is mentioned, return null
+- Convert relative dates to specific dates based on current date: {current_date}
+- Format dates consistently as YYYY-MM-DD
 
-Format: 
-- Format your response as a JSON object with ALL two of these exact keys:
-   - "rationale": Brief explanation of why these queries are relevant
-   - "query": A list of search queries
+Context: User is requesting marketing analysis for advertising campaigns and wants to specify a particular time period for analysis.
 
-Example:
-
-Topic: What revenue grew more last year apple stock or the number of people buying an iphone
-```json
-{{
-    "rationale": "To answer this comparative growth question accurately, we need specific data points on Apple's stock performance and iPhone sales metrics. These queries target the precise financial information needed: company revenue trends, product-specific unit sales figures, and stock price movement over the same fiscal period for direct comparison.",
-    "query": ["Apple total revenue growth fiscal year 2024", "iPhone unit sales growth fiscal year 2024", "Apple stock price growth fiscal year 2024"],
-}}
-```
-
-Context: {research_topic}"""
+User Message: {user_message}"""
 
 
 web_searcher_instructions = """Conduct targeted Google Searches to gather the most recent, credible information on "{research_topic}" and synthesize it into a verifiable text artifact.
@@ -94,3 +81,4 @@ User Context:
 
 Summaries:
 {summaries}"""
+
