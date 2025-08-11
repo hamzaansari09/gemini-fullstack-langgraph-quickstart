@@ -3,6 +3,12 @@ from typing import List
 from pydantic import BaseModel, Field
 
 
+class ResearchTopic(BaseModel):
+    research_topic: str = Field(
+        description="The extracted research topic or question from the user's query."
+    )
+
+
 class SearchQueryList(BaseModel):
     query: List[str] = Field(
         description="A list of search queries to be used for web research."

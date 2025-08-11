@@ -1,35 +1,30 @@
 import os
 
 from dotenv import load_dotenv
-from google.genai import Client
 from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableConfig
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
-from langchain_core.messages import AIMessage
-from langgraph.types import Send
-from langgraph.graph import StateGraph
-from langgraph.graph import START, END
-from langchain_core.runnables import RunnableConfig
 from langchain_anthropic import ChatAnthropic
 from tavily import TavilyClient
 
 from agent.configuration import Configuration
 from agent.prompts import (
     answer_instructions,
+    context_extractor_instructions,
     get_current_date,
     query_writer_instructions,
     reflection_instructions,
     web_searcher_instructions,
 )
 from agent.state import (
+    ContextExtractionState,
     OverallState,
     QueryGenerationState,
     ReflectionState,
     WebSearchState,
 )
-from agent.tools_and_schemas import Reflection, SearchQueryList
+from agent.tools_and_schemas import Reflection, ResearchTopic, SearchQueryList
 from agent.configuration import Configuration
 from agent.prompts import (
     get_current_date,
@@ -54,6 +49,40 @@ tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 
 # Nodes
+def extract_context(
+    state: OverallState, config: RunnableConfig
+) -> ContextExtractionState:
+    """LangGraph node that extracts the research topic from the User's question.
+
+    Uses Claude 3 Haiku to extract the research topic from the User's question.
+
+    Args:
+        state: Current graph state containing the User's question
+        config: Configuration for the runnable, including LLM provider settings
+
+    Returns:
+        Dictionary with state update, including research_topic key containing the extracted topic
+    """
+    # init Claude 3 Haiku
+    llm = ChatAnthropic(
+        model="claude-3-haiku-20240307",
+        temperature=0,
+        max_retries=2,
+        api_key=os.getenv("ANTHROPIC_API_KEY"),
+    )
+    structured_llm = llm.with_structured_output(ResearchTopic)
+
+    # Format the prompt
+    current_date = get_current_date()
+    formatted_prompt = context_extractor_instructions.format(
+        current_date=current_date,
+        user_query=get_research_topic(state["messages"]),
+    )
+    # Generate the search queries
+    result = structured_llm.invoke(formatted_prompt)
+    return {"research_topic": result.research_topic}
+
+
 def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
 
@@ -86,7 +115,7 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
     current_date = get_current_date()
     formatted_prompt = query_writer_instructions.format(
         current_date=current_date,
-        research_topic=get_research_topic(state["messages"]),
+        research_topic=state["research_topic"],
         number_queries=state["initial_search_query_count"],
     )
     # Generate the search queries
@@ -273,14 +302,16 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
 builder = StateGraph(OverallState, config_schema=Configuration)
 
 # Define the nodes we will cycle between
+builder.add_node("extract_context", extract_context)
 builder.add_node("generate_query", generate_query)
 builder.add_node("web_research", web_research)
 builder.add_node("reflection", reflection)
 builder.add_node("finalize_answer", finalize_answer)
 
-# Set the entrypoint as `generate_query`
+# Set the entrypoint as `extract_context`
 # This means that this node is the first one called
-builder.add_edge(START, "generate_query")
+builder.add_edge(START, "extract_context")
+builder.add_edge("extract_context", "generate_query")
 # Add conditional edge to continue with search queries in a parallel branch
 builder.add_conditional_edges(
     "generate_query", continue_to_web_research, ["web_research"]

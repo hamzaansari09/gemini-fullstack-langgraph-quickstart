@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage
 
 from agent.graph import graph
-from agent.tools_and_schemas import SearchQueryList, Reflection
+from agent.tools_and_schemas import SearchQueryList, Reflection, ResearchTopic
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -12,6 +12,10 @@ class TestGraph(unittest.TestCase):
     @patch('agent.graph.ChatAnthropic')
     @patch('agent.graph.tavily_client')
     def test_invoke_graph(self, mock_tavily_client, mock_chat_anthropic):
+        # Mock for extract_context
+        mock_structured_llm_extract_context = MagicMock()
+        mock_structured_llm_extract_context.invoke.return_value = ResearchTopic(research_topic="Who won the euro 2024")
+
         # Mock for generate_query
         mock_structured_llm_generate_query = MagicMock()
         mock_structured_llm_generate_query.invoke.return_value = SearchQueryList(query=["query1", "query2"], rationale="test rationale")
@@ -31,6 +35,7 @@ class TestGraph(unittest.TestCase):
         # Mock the llm instance
         mock_llm_instance = MagicMock()
         mock_llm_instance.with_structured_output.side_effect = [
+            mock_structured_llm_extract_context,
             mock_structured_llm_generate_query,
             mock_structured_llm_reflection,
         ]

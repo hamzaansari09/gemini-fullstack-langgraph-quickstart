@@ -10,6 +10,7 @@ from typing_extensions import Annotated
 
 class OverallState(TypedDict):
     messages: Annotated[list, add_messages]
+    research_topic: str
     search_query: Annotated[list, operator.add]
     web_research_result: Annotated[list, operator.add]
     sources_gathered: Annotated[list, operator.add]
@@ -17,6 +18,10 @@ class OverallState(TypedDict):
     max_research_loops: int
     research_loop_count: int
     reasoning_model: str
+
+
+class ContextExtractionState(TypedDict):
+    research_topic: str
 
 
 class ReflectionState(TypedDict):

@@ -6,6 +6,29 @@ def get_current_date():
     return datetime.now().strftime("%B %d, %Y")
 
 
+context_extractor_instructions = """Your goal is to extract the main question or research topic from the user's query.
+
+Instructions:
+- The user query might contain pleasantries or other conversational elements. Your task is to strip those away and identify the core informational need.
+- The output should be a concise and clear question or topic that can be used for research.
+- The current date is {current_date}.
+
+Format:
+- Format your response as a JSON object with this exact key:
+   - "research_topic": The extracted research topic or question.
+
+Example:
+
+User Query: "Hey, can you help me find out what were the main causes of the financial crisis in 2008? Thanks!"
+```json
+{{
+    "research_topic": "Main causes of the 2008 financial crisis"
+}}
+```
+
+User Query: {user_query}"""
+
+
 query_writer_instructions = """Your goal is to generate sophisticated and diverse web search queries. These queries are intended for an advanced automated web research tool capable of analyzing complex results, following links, and synthesizing information.
 
 Instructions:
