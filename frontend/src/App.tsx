@@ -18,14 +18,21 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const thread = useStream<{
     messages: Message[];
-    initial_search_query_count: number;
-    max_research_loops: number;
-    reasoning_model: string;
+    initial_search_query_count?: number;
+    max_research_loops?: number;
+    reasoning_model?: string;
+    image_data?: string;
+    selected_date?: string | null;
+    insights?: any;
+    improvements?: any;
+    takeaways?: any;
+    greeting_sent?: boolean;
+    analysis_complete?: boolean;
   }>({
     apiUrl: import.meta.env.DEV
       ? "http://localhost:2024"
       : "http://localhost:8123",
-    assistantId: "agent",
+    assistantId: "agent", // Default to research agent, will be overridden for marketing requests
     messagesKey: "messages",
     onUpdateEvent: (event: any) => {
       let processedEvent: ProcessedEvent | null = null;
@@ -203,5 +210,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
