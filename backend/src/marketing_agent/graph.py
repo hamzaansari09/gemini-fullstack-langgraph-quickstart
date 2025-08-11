@@ -270,24 +270,75 @@ def suggest_ad_improvements_tool(state: MarketingState, config: RunnableConfig) 
         "messages": [AIMessage(content=improvements_content)],
     }
 
-    # Format the prompt
-    current_date = get_current_date()
-    formatted_prompt = reflection_instructions.format(
-        current_date=current_date,
-        research_topic=get_research_topic(state["messages"]),
-        summaries="\n\n---\n\n".join(state["web_research_result"]),
-    )
-    # init Reasoning Model
+
+def extract_key_takeaways_tool(state: MarketingState, config: RunnableConfig) -> Dict[str, Any]:
+    """Summarize the main takeaways from the ad analysis.
+    
+    Args:
+        state: Current marketing state with all analysis data
+        config: Configuration for the runnable
+        
+    Returns:
+        Dictionary with state update including key takeaways
+    """
+    configurable = Configuration.from_runnable_config(config)
+    
+    # Check if we have sufficient analysis data
+    if not state.get("insights") or not state.get("improvements"):
+        return {
+            "messages": [AIMessage(content="Insufficient analysis data for generating takeaways. Please complete insights and improvements analysis first.")],
+        }
+    
+    # Initialize Gemini model for takeaway extraction
     llm = ChatGoogleGenerativeAI(
-        model=reasoning_model,
-        temperature=1.0,
+        model=configurable.answer_model,  # Use reasoning model for synthesis
+        temperature=0.2,
         max_retries=2,
         api_key=os.getenv("GEMINI_API_KEY"),
     )
-    result = llm.with_structured_output(Reflection).invoke(formatted_prompt)
-
+    structured_llm = llm.with_structured_output(AdTakeaways)
+    
+    # Prepare context from previous analysis
+    insights_context = "Key Insights:\n"
+    for insight in state["insights"]:
+        insights_context += f"- {insight['title']}: {insight['description']}\n"
+    
+    improvements_context = "Improvement Suggestions:\n"
+    for improvement in state["improvements"]:
+        improvements_context += f"- {improvement['category']}: {improvement['suggestion']}\n"
+    
+    # Format the prompt for takeaway extraction
+    formatted_prompt = ad_takeaways_instructions.format(
+        current_date=get_current_date(),
+        insights_context=insights_context,
+        improvements_context=improvements_context,
+        selected_date=state.get("selected_date", "not specified")
+    )
+    
+    result = structured_llm.invoke(formatted_prompt)
+    
+    # Convert takeaways to list format for state storage
+    takeaways_list = [
+        {
+            "takeaway": takeaway.takeaway,
+            "actionable_insight": takeaway.actionable_insight,
+            "relevance": takeaway.relevance
+        }
+        for takeaway in result.takeaways
+    ]
+    
+    # Create response message
+    takeaways_content = f"## 📋 Key Takeaways & Strategic Insights\n\n{result.summary}\n\n"
+    for i, takeaway in enumerate(result.takeaways, 1):
+        takeaways_content += f"### {i}. {takeaway.relevance} Level\n"
+        takeaways_content += f"**Takeaway:** {takeaway.takeaway}\n"
+        takeaways_content += f"**Actionable Insight:** {takeaway.actionable_insight}\n\n"
+    
     return {
-        "is_sufficient": result.is_sufficient,
+        "takeaways": takeaways_list,
+        "messages": [AIMessage(content=takeaways_content)],
+        "analysis_complete": True,
+    }
         "knowledge_gap": result.knowledge_gap,
         "follow_up_queries": result.follow_up_queries,
         "research_loop_count": state["research_loop_count"],
@@ -406,6 +457,7 @@ builder.add_conditional_edges(
 builder.add_edge("finalize_answer", END)
 
 graph = builder.compile(name="pro-search-agent")
+
 
 
 
