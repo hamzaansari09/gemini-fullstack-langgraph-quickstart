@@ -5,13 +5,11 @@ It serves the marketing agent graph and provides endpoints for ad analysis workf
 """
 
 import pathlib
+
 from fastapi import FastAPI, Response
 from fastapi.staticfiles import StaticFiles
-from langgraph.graph import StateGraph
 
 from marketing_agent.graph import graph
-from marketing_agent.state import MarketingState
-from marketing_agent.configuration import Configuration
 
 # Define the FastAPI app for the marketing agent
 app = FastAPI(

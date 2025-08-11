@@ -1,30 +1,30 @@
 import os
-import base64
-import re
-from typing import Dict, Any, Optional
+from typing import Any, Dict
 
-from marketing_agent.tools_and_schemas import (
-    AdInsights, AdImprovements, AdTakeaways, 
-    DateExtraction, GreetingMessage
-)
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, HumanMessage
-from langgraph.graph import StateGraph
-from langgraph.graph import START, END
-from langchain_core.runnables import RunnableConfig
 from google.genai import Client
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.runnables import RunnableConfig
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.graph import END, START, StateGraph
 
-from marketing_agent.state import MarketingState
 from marketing_agent.configuration import Configuration
 from marketing_agent.prompts import (
-    get_current_date,
-    date_extraction_instructions,
-    greeting_instructions,
-    ad_insights_instructions,
     ad_improvements_instructions,
+    ad_insights_instructions,
     ad_takeaways_instructions,
+    date_extraction_instructions,
+    get_current_date,
+    greeting_instructions,
 )
-from langchain_google_genai import ChatGoogleGenerativeAI
+from marketing_agent.state import MarketingState
+from marketing_agent.tools_and_schemas import (
+    AdImprovements,
+    AdInsights,
+    AdTakeaways,
+    DateExtraction,
+    GreetingMessage,
+)
 
 load_dotenv()
 

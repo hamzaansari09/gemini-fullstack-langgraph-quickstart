@@ -1,4 +1,5 @@
-from typing import List, Optional
+from typing import List
+
 from pydantic import BaseModel, Field
 
 
@@ -82,13 +83,13 @@ class AdTakeaways(BaseModel):
 
 class DateExtraction(BaseModel):
     """Model for extracting date from user query."""
-    selected_date: Optional[str] = Field(
+    selected_date: str | None = Field(
         description="The date mentioned by the user in their query, formatted as YYYY-MM-DD if found"
     )
     date_found: bool = Field(
         description="Whether a specific date was found in the user's query"
     )
-    date_context: Optional[str] = Field(
+    date_context: str | None = Field(
         description="Context around the date mention in the user's query"
     )
 
