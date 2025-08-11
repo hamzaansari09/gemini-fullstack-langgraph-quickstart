@@ -40,7 +40,6 @@ export const InputForm: React.FC<InputFormProps> = ({
 
   const handleImageSelect = (selectedImageData: string | null, fileName?: string) => {
     setImageData(selectedImageData);
-    setImageName(fileName);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -195,6 +194,7 @@ export const InputForm: React.FC<InputFormProps> = ({
     </form>
   );
 };
+
 
 
 
